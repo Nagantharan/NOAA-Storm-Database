@@ -1,0 +1,40 @@
+Load required packages
+library(ggplot2)
+library(plyr)
+
+Finding the total Harm with sum of FATALITIES and INJURIES by EVTYPE
+injuryDataFrame <- ddply(stormData, .(EVTYPE), summarize, TotalHarm = sum(FATALITIES + INJURIES))
+injuryDataFrame <- injuryDataFrame[order(injuryDataFrame$TotalHarm, decreasing = T), ]
+
+Top 10 Harm
+TopHarm <- injuryDataFrame[1:10, ]
+
+Property Damage: Find the sum of PROPDMG by EVTYPE and PROPDMGEXP.
+prop <- ddply(stormData, .(EVTYPE, PROPDMGEXP), summarize, PROPDMG = sum(PROPDMG))
+
+Property Damage: Finding the value of property Damage
+prop <- mutate(prop, PropertyDamage = ifelse(toupper(PROPDMGEXP) =='K', PROPDMG*1000, ifelse(toupper(PROPDMGEXP) =='M', PROPDMG*1000000, ifelse(toupper(PROPDMGEXP) == 'B', PROPDMG*1000000000, ifelse(toupper(PROPDMGEXP) == 'H', PROPDMG*100, PROPDMG)))))
+
+Property Damage: Finding the property damage based on event type
+prop <- subset(prop, select = c("EVTYPE", "PropertyDamage"))
+prop.total <- ddply(prop, .(EVTYPE), summarize, TotalPropDamage = sum(PropertyDamage))
+
+Crop Damage: Sum of the the CROPDMG by EVTYPE and CROPDMGEXP.
+crop <- ddply(stormData, .(EVTYPE, CROPDMGEXP), summarize, CROPDMG = sum(CROPDMG))
+
+Crop Damage: Real crop damage based on CROPDMGEXP.
+crop <- mutate(crop, CropDamage = ifelse(toupper(CROPDMGEXP) =='K', CROPDMG*1000, ifelse(toupper(CROPDMGEXP) =='M', CROPDMG*1000000, ifelse(toupper(CROPDMGEXP) == 'B', CROPDMG*1000000000, ifelse(toupper(CROPDMGEXP) == 'H', CROPDMG*100, CROPDMG)))))
+
+Crop Damage: Sum of the crop damage by event type
+crop <- subset(crop, select = c("EVTYPE", "CropDamage"))
+crop.total <- ddply(crop, .(EVTYPE), summarize, TotalCropDamage = sum(CropDamage))
+
+Total Damage : Merging the Property & Crop Damage
+damageDataFrame <- merge(prop.total, crop.total, by="EVTYPE")
+damageDataFrame <- mutate(damageDataFrame, TotalDamage = TotalPropDamage + TotalCropDamage)
+damageDataFrame <- damageDataFrame[order(damageDataFrame$TotalDamage, decreasing = T), ]
+
+Top 10 Damage
+TopDamage <- damageDataFrame[1:10, ]
+
+
