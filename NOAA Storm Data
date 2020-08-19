@@ -1,0 +1,13 @@
+Data Processing
+Set the working directory
+
+setwd(".")
+
+Download the file
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2",destfile = "./stormData.csv.bz2",method = "curl")
+
+Read stormData from the downloaded file
+stormData <- read.csv("./stormData.csv.bz2")
+dim(stormData)
+
+## [1] 902297     37
